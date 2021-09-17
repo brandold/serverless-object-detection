@@ -1,0 +1,219 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Basic Roseburg Tech workshop setup with VPC for Cloud9.
+Resources:
+  RootRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: RoseburgTechWorkshopInstanceRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+  RolePolicies:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: RoseburgTechWorkshopInstancePolicy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'lambda:CreateFunction'
+              - 'lambda:TagResource'
+              - 'iam:ListRoleTags'
+              - 'iam:ListServerCertificates'
+              - 'iam:CreateRole'
+              - 'lambda:GetFunctionConfiguration'
+              - 'iam:AttachRolePolicy'
+              - 'iam:ListServiceSpecificCredentials'
+              - 'iam:PutRolePolicy'
+              - 'iam:ListSigningCertificates'
+              - 'iam:ListVirtualMFADevices'
+              - 'iam:ListSSHPublicKeys'
+              - 'iam:ListAttachedRolePolicies'
+              - 'lambda:ListLayerVersions'
+              - 'lambda:ListLayers'
+              - 'lambda:DeleteFunction'
+              - 'lambda:GetAlias'
+              - 'iam:ListRolePolicies'
+              - 'iam:ListPolicies'
+              - 'iam:GetRole'
+              - 'lambda:ListFunctions'
+              - 'iam:ListSAMLProviders'
+              - 'iam:GetPolicy'
+              - 'lambda:GetEventSourceMapping'
+              - 'apigateway:*'
+              - 'lambda:ListAliases'
+              - 'iam:ListEntitiesForPolicy'
+              - 'iam:AttachUserPolicy'
+              - 'iam:DeleteRole'
+              - 'lambda:AddLayerVersionPermission'
+              - 'lambda:UpdateAlias'
+              - 'lambda:UpdateFunctionCode'
+              - 'iam:ListGroupsForUser'
+              - 'lambda:ListEventSourceMappings'
+              - 'lambda:PublishVersion'
+              - 'lambda:CreateAlias'
+              - 'iam:GetAccountSummary'
+              - 'lambda:ListVersionsByFunction'
+              - 'lambda:GetLayerVersion'
+              - 'iam:ListPoliciesGrantingServiceAccess'
+              - 'iam:DeletePolicy'
+              - 'lambda:GetAccountSettings'
+              - 'iam:ListMFADevices'
+              - 'lambda:GetLayerVersionPolicy'
+              - 'lambda:UntagResource'
+              - 'lambda:PutFunctionConcurrency'
+              - 'iam:ListInstanceProfilesForRole'
+              - 'iam:PassRole'
+              - 'lambda:ListTags'
+              - 'iam:DeleteRolePolicy'
+              - 'lambda:DeleteLayerVersion'
+              - 'iam:ListAttachedUserPolicies'
+              - 'iam:ListAttachedGroupPolicies'
+              - 'iam:ListAccessKeys'
+              - 'lambda:UpdateEventSourceMapping'
+              - 'lambda:GetFunction'
+              - 'iam:ListGroupPolicies'
+              - 'lambda:UpdateFunctionConfiguration'
+              - 'iam:ListRoles'
+              - 'iam:ListUserPolicies'
+              - 'iam:ListInstanceProfiles'
+              - 'iam:CreatePolicy'
+              - 'lambda:AddPermission'
+              - 'iam:ListPolicyVersions'
+              - 'iam:ListOpenIDConnectProviders'
+              - 'iam:PutUserPolicy'
+              - 'iam:ListAccountAliases'
+              - 'iam:ListUsers'
+              - 'iam:UpdateRole'
+              - 'lambda:DeleteFunctionConcurrency'
+              - 'iam:ListGroups'
+              - 'lambda:GetPolicy'
+              - 'iam:GetLoginProfile'
+              - 'iam:DeletePolicyVersion'
+              - 'iam:ListUserTags'
+            Resource: '*'
+          - Effect: Allow
+            Action: 's3:*'
+            Resource:
+              Fn::Join: 
+                - ""
+                - 
+                  - "arn:aws:s3:::"
+                  - 
+                    Ref: S3Bucket
+                  - "/*"
+      Roles:
+        - Ref: RootRole
+  RootInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      InstanceProfileName: RTWorkshopInstanceProfile
+      Path: /
+      Roles:
+        - Ref: RootRole
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 10.192.0.0/16
+      Tags:
+        - Key: Name
+          Value: C9 VPC
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: C9 IGW
+  InternetGatewayAttachment:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+  PublicSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select 
+        - 0
+        - !GetAZs ''
+      CidrBlock: 10.192.10.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: C9 Public Subnet
+  PublicRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: Public Routes
+  DefaultPublicRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  PublicSubnet1RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+  C9IDE:
+    Type: 'AWS::Cloud9::EnvironmentEC2'
+    DependsOn: PublicSubnet1RouteTableAssociation
+    Properties:
+      Name: RT-Workshop
+      Description: C9 IDE for Roseburg Tech Serverless Workshop
+      Repositories:
+         - PathComponent: /rt-workshop
+           RepositoryUrl: https://github.com/brand161/serverless-object-recognition.git
+      AutomaticStopTimeMinutes: 30
+      SubnetId: !Ref PublicSubnet1
+      InstanceType: t2.micro       
+         
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+      Tags:
+        - Key: RTWorkshop
+          Value: 'yes'
+  BucketPolicy: 
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: 
+        Ref: S3Bucket
+      PolicyDocument: 
+        Statement: 
+          - 
+            Action: 
+              - "s3:GetObject"
+            Effect: "Allow"
+            Resource: 
+              Fn::Join: 
+                - ""
+                - 
+                  - "arn:aws:s3:::"
+                  - 
+                    Ref: S3Bucket
+                  - "/*"
+            Principal: "*" 
+Outputs:
+  WebsiteURL:
+    Value: !GetAtt 
+      - S3Bucket
+      - WebsiteURL
+    Description: URL for website hosted on S3
