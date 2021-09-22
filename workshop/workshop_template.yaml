@@ -1,10 +1,10 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Basic Roseburg Tech workshop setup with VPC for Cloud9.
+Description: STG309 workshop setup with VPC for Cloud9.
 Resources:
   RootRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: RoseburgTechWorkshopInstanceRole
+      RoleName: STG309WorkshopInstanceRole
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -18,7 +18,7 @@ Resources:
   RolePolicies:
     Type: 'AWS::IAM::Policy'
     Properties:
-      PolicyName: RoseburgTechWorkshopInstancePolicy
+      PolicyName: STG309InstancePolicy
       PolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -100,22 +100,12 @@ Resources:
               - 'iam:DeletePolicyVersion'
               - 'iam:ListUserTags'
             Resource: '*'
-          - Effect: Allow
-            Action: 's3:*'
-            Resource:
-              Fn::Join: 
-                - ""
-                - 
-                  - "arn:aws:s3:::"
-                  - 
-                    Ref: S3Bucket
-                  - "/*"
       Roles:
         - Ref: RootRole
   RootInstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'
     Properties:
-      InstanceProfileName: RTWorkshopInstanceProfile
+      InstanceProfileName: STG309WorkshopInstanceProfile
       Path: /
       Roles:
         - Ref: RootRole
@@ -141,9 +131,7 @@ Resources:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select 
-        - 0
-        - !GetAZs ''
+      AvailabilityZone: us-west-2a
       CidrBlock: 10.192.10.0/24
       MapPublicIpOnLaunch: true
       Tags:
@@ -172,48 +160,49 @@ Resources:
     Type: 'AWS::Cloud9::EnvironmentEC2'
     DependsOn: PublicSubnet1RouteTableAssociation
     Properties:
-      Name: RT-Workshop
-      Description: C9 IDE for Roseburg Tech Serverless Workshop
+      Name: STG309-Workshop
+      Description: C9 IDE for STG309 Workshop
       Repositories:
-         - PathComponent: /rt-workshop
-           RepositoryUrl: https://github.com/brand161/serverless-object-recognition.git
-      AutomaticStopTimeMinutes: 30
+         - PathComponent: /stg309-workshop
+           RepositoryUrl: https://github.com/brandold/serverless-object-detection.git
+      AutomaticStopTimeMinutes: 60
       SubnetId: !Ref PublicSubnet1
-      InstanceType: t2.micro       
-         
-  S3Bucket:
-    Type: 'AWS::S3::Bucket'
-    Properties:
-      AccessControl: PublicRead
-      WebsiteConfiguration:
-        IndexDocument: index.html
-        ErrorDocument: error.html
-      Tags:
-        - Key: RTWorkshop
-          Value: 'yes'
-  BucketPolicy: 
-    Type: AWS::S3::BucketPolicy
+      InstanceType: t2.micro
+
+  EFSSecGroup:
+    Type: AWS::EC2::SecurityGroup
     Properties: 
-      Bucket: 
-        Ref: S3Bucket
-      PolicyDocument: 
-        Statement: 
-          - 
-            Action: 
-              - "s3:GetObject"
-            Effect: "Allow"
-            Resource: 
-              Fn::Join: 
-                - ""
-                - 
-                  - "arn:aws:s3:::"
-                  - 
-                    Ref: S3Bucket
-                  - "/*"
-            Principal: "*" 
-Outputs:
-  WebsiteURL:
-    Value: !GetAtt 
-      - S3Bucket
-      - WebsiteURL
-    Description: URL for website hosted on S3
+      GroupDescription: STG309Access
+      GroupName: STG309
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '0'
+        ToPort: '0'
+        CidrIp: !GetAtt VPC.CidrBlock
+      - IpProtocol: udp
+        FromPort: '0'
+        ToPort: '0'
+        CidrIp: !GetAtt VPC.CidrBlock
+      SecurityGroupEgress:
+      - IpProtocol: tcp
+        FromPort: '0'
+        ToPort: '0'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: udp
+        FromPort: '0'
+        ToPort: '0'
+        CidrIp: 0.0.0.0/0
+      VpcId: !Ref VPC
+
+  EFSFileSystem:
+    Type: AWS::EFS::FileSystem
+    Properties: 
+      AvailabilityZoneName: us-west-2a
+
+  EFSMountTarget:
+    Type: AWS::EFS::MountTarget
+    Properties: 
+      FileSystemId: !Ref EFSFileSystem
+      SecurityGroups: 
+        - !GetAtt EFSSecGroup.GroupId
+      SubnetId: !Ref PublicSubnet1

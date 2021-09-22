@@ -1,9 +1,6 @@
 import cv2
-import os
 import numpy as np
-import boto3
 import base64
-import json
 from chalice import Chalice
 
 app = Chalice(app_name='detection_api')
@@ -19,53 +16,22 @@ min_confidence = 0.2
 
 threshold = 0.1
 
-# S3 Client
-s3 = boto3.client('s3', region_name='us-west-2')
-
 # Paths to weights, model configuration, and labels the model was trained on
 labels_path = './chalicelib/coco.names'
-weights_path = './chalicelib/yolov3-tiny.weights'
-config_path = './chalicelib/yolov3-tiny.cfg'
+
+small_weights = './chalicelib/yolo-tiny.weights'
+small_config = './chalicelib/yolo-tiny.cfg'
+
+big_weights = '/mnt/efs/models/yolo-big.weights'
+big_config = './chalicelib/yolo-big.cfg'
 
 # Load labels
 labels = open(labels_path, 'r').read().strip().split("\n")
 
 
-# Generate some colors for each class of label
-# Uncomment this code for lab 2:
-np.random.seed(42)
-label_colors = np.random.randint(0, 255, size=(len(labels), 3),
-                                 dtype="uint8")
-
-
-@app.route('/')
-def index():
-    return {'hello': 'world'}
-
-
-@app.route('/detectObjects', methods=['POST'], content_types=supported_content_types, cors=True)
-def detect_objects():
-    query_params = app.current_request.query_params
-    return_image = False
-
-    # Uncomment this code below: 
-    # if not query_params:
-    #     return_image = False
-    # else:
-    #    
-    #     try:
-    #         if 'returnImage' in query_params:
-    #             if query_params['returnImage'] == 'true':
-    #                 return_image = True
-    #         else:
-    #             return {"Error": "Unsupported query param in request"}
-    #     except:
-    #         return {"Error": "Unsupported query param in request"}
-    
-    raw_image_data = app.current_request.raw_body
-
+def run_neural_net(image, config_path, weights_path, return_image):
     # Load raw image into numpy array
-    img_nparr = np.frombuffer(raw_image_data, np.uint8)
+    img_nparr = np.frombuffer(image, np.uint8)
 
     # Load image with cv2 and get dimensions
     image = cv2.imdecode(img_nparr, cv2.IMREAD_COLOR)
@@ -121,16 +87,15 @@ def detect_objects():
                 confidences.append(float(confidence))
                 class_ids.append(class_id)
 
-    # TODO: Add check to see if we actually got detections
-
     # Apply non-maxima suppression to suppress weak and overlapping bounding
     # boxes
     indexes = cv2.dnn.NMSBoxes(boxes, confidences, min_confidence, threshold)
 
+    results = []
+
     # Make sure we have at least one detection
     if len(indexes) > 0:
         print('looping over indexes')
-        results = []
         # Loop over the indexes we are keeping
         for i in indexes.flatten():
 
@@ -141,29 +106,79 @@ def detect_objects():
             result = {"Object": labels[class_ids[i]], "Confidence": confidences[i], "BoundingBoxes": {
                 "x": x, "y": y, "w": w, "h": h}}
             results.append(result)
-
-        if return_image is True:
-            # Comment this code below out  for lab 3:
-            return {"Results": "Not implemented"}
-
-
-            # Draw a bounding boxes and label text on image
-            
-            # Uncomment this code below:
-            # color = [int(c) for c in label_colors[class_ids[i]]]
-            # cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
-            # text = "{}: {:.4f}".format(labels[class_ids[i]], confidences[i])
-            # cv2.putText(image, text, (x, y - 5),
-            #             cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-            # encoded_image = base64.b64encode(
-            #     cv2.imencode('.jpg', image)[1]).decode()
-            # response = {"image": encoded_image}
-
-            # json_respone = json.dumps(
-            #     response, ensure_ascii=False, indent=4)
-            #return json_respone
-
-        else:
-            return {"Results": results}
+    
+    if return_image is True:
+        np.random.seed(42)
+        label_colors = np.random.randint(0, 255, size=(len(labels), 3),
+                                 dtype="uint8")
+        color = [int(c) for c in label_colors[class_ids[i]]]
+        cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
+        text = "{}: {:.4f}".format(labels[class_ids[i]], confidences[i])
+        cv2.putText(image, text, (x, y - 5),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+        encoded_image = base64.b64encode(
+            cv2.imencode('.jpg', image)[1]).decode()
+        
+        return results, encoded_image
     else:
-        return {"Results": "None"}
+        return results, ''
+
+
+@app.route('/')
+def index():
+    return {'hello': 'world'}
+
+
+@app.route('/detectObjects', methods=['POST'], content_types=supported_content_types, cors=True)
+def detect_objects():
+    query_params = app.current_request.query_params
+    return_image = False
+
+    if not query_params:
+        return_image = False
+    else:
+       
+        try:
+            if 'returnImage' in query_params:
+                if query_params['returnImage'] == 'true':
+                    return_image = True
+            else:
+                return {"Error": "Unsupported query param in request"}
+        except:
+            return {"Error": "Unsupported query param in request"}
+    
+    raw_image_data = app.current_request.raw_body
+
+    detection_results, overlayed_image = run_neural_net(raw_image_data, small_config, small_weights, return_image)
+
+        
+    results = {"Results": detection_results, "Image": overlayed_image}
+
+    return results
+
+
+@app.route('/detectObjectsv2', methods=['POST'], content_types=supported_content_types, cors=True)
+def detect_objects_v2():
+    query_params = app.current_request.query_params
+    return_image = False
+
+    if not query_params:
+        return_image = False
+    else:
+        try:
+            if 'returnImage' in query_params:
+                if query_params['returnImage'] == 'true':
+                    return_image = True
+            else:
+                return {"Error": "Unsupported query param in request"}
+        except:
+            return {"Error": "Unsupported query param in request"}
+    
+    raw_image_data = app.current_request.raw_body
+
+    detection_results, overlayed_image = run_neural_net(raw_image_data, big_config, big_weights, return_image)
+
+
+    results = {"Results": detection_results, "Image": overlayed_image}
+
+    return results
