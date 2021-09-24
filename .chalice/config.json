@@ -6,7 +6,9 @@
       "api_gateway_stage": "api",
       "layers": ["arn:aws:lambda:us-west-2:930621086037:layer:cv2python36:1"],
       "lambda_memory_size": 3008,
-      "lambda_timeout": 30
+      "lambda_timeout": 30,
+      "autogen_policy": false,
+      "iam_policy_file": "app-policy.json"
     }
   }
 }

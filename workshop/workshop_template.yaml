@@ -99,6 +99,8 @@ Resources:
               - 'iam:GetLoginProfile'
               - 'iam:DeletePolicyVersion'
               - 'iam:ListUserTags'
+              - 'elasticfilesystem:*'
+              - 'ec2:*'
             Resource: '*'
       Roles:
         - Ref: RootRole
@@ -115,13 +117,13 @@ Resources:
       CidrBlock: 10.192.0.0/16
       Tags:
         - Key: Name
-          Value: C9 VPC
+          Value: STG309 VPC
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
     Properties:
       Tags:
         - Key: Name
-          Value: C9 IGW
+          Value: STG309 IGW
   InternetGatewayAttachment:
     Type: 'AWS::EC2::VPCGatewayAttachment'
     Properties:
@@ -136,14 +138,44 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: C9 Public Subnet
+          Value: STG309 Public Subnet 1
+  PublicSubnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: us-west-2b
+      CidrBlock: 10.192.11.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: STG309 Public Subnet 2
+  PublicSubnet3:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: us-west-2c
+      CidrBlock: 10.192.12.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: STG309 Public Subnet 3
+  PublicSubnet4:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: us-west-2d
+      CidrBlock: 10.192.13.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: STG309 Public Subnet 4
   PublicRouteTable:
     Type: 'AWS::EC2::RouteTable'
     Properties:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: Public Routes
+          Value: STG309 Public Routes
   DefaultPublicRoute:
     Type: 'AWS::EC2::Route'
     DependsOn: InternetGatewayAttachment
@@ -156,6 +188,21 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet1
+  PublicSubnet2RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+  PublicSubnet3RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet3
+  PublicSubnet4RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet4
   C9IDE:
     Type: 'AWS::Cloud9::EnvironmentEC2'
     DependsOn: PublicSubnet1RouteTableAssociation
@@ -177,32 +224,80 @@ Resources:
       SecurityGroupIngress:
       - IpProtocol: tcp
         FromPort: '0'
-        ToPort: '0'
+        ToPort: '65535'
         CidrIp: !GetAtt VPC.CidrBlock
       - IpProtocol: udp
         FromPort: '0'
-        ToPort: '0'
+        ToPort: '65535'
         CidrIp: !GetAtt VPC.CidrBlock
       SecurityGroupEgress:
       - IpProtocol: tcp
         FromPort: '0'
-        ToPort: '0'
+        ToPort: '65535'
         CidrIp: 0.0.0.0/0
       - IpProtocol: udp
         FromPort: '0'
-        ToPort: '0'
+        ToPort: '65535'
         CidrIp: 0.0.0.0/0
       VpcId: !Ref VPC
 
   EFSFileSystem:
     Type: AWS::EFS::FileSystem
-    Properties: 
-      AvailabilityZoneName: us-west-2a
 
-  EFSMountTarget:
+  EFSMountTarget1:
     Type: AWS::EFS::MountTarget
     Properties: 
       FileSystemId: !Ref EFSFileSystem
       SecurityGroups: 
         - !GetAtt EFSSecGroup.GroupId
       SubnetId: !Ref PublicSubnet1
+  
+  EFSMountTarget2:
+    Type: AWS::EFS::MountTarget
+    Properties: 
+      FileSystemId: !Ref EFSFileSystem
+      SecurityGroups: 
+        - !GetAtt EFSSecGroup.GroupId
+      SubnetId: !Ref PublicSubnet2
+  
+  EFSMountTarget3:
+    Type: AWS::EFS::MountTarget
+    Properties: 
+      FileSystemId: !Ref EFSFileSystem
+      SecurityGroups: 
+        - !GetAtt EFSSecGroup.GroupId
+      SubnetId: !Ref PublicSubnet3
+
+  EFSMountTarget4:
+    Type: AWS::EFS::MountTarget
+    Properties: 
+      FileSystemId: !Ref EFSFileSystem
+      SecurityGroups: 
+        - !GetAtt EFSSecGroup.GroupId
+      SubnetId: !Ref PublicSubnet4
+
+  ManagedAccessPoint:
+    Type: AWS::EFS::AccessPoint
+    DependsOn: 
+      - EFSMountTarget1
+      - EFSMountTarget2
+      - EFSMountTarget3
+      - EFSMountTarget4
+    Properties:
+      FileSystemId: !Ref EFSFileSystem
+      PosixUser:
+        Gid: 1000
+        Uid: 1000
+      RootDirectory:
+        CreationInfo:
+          OwnerGid: 1000
+          OwnerUid: 1000
+          Permissions: 777
+        Path: /efs
+
+Outputs:
+  EFSFileSystemId:
+    Description: EFS Filesystem ID
+    Value: !Ref EFSFileSystem
+    Export:
+      Name: FilesystemID

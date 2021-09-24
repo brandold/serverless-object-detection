@@ -33,7 +33,7 @@
 
 ### Once the initial automation completes, you should have a shell ready for use. From the current working directory, run:
 
-`. ./stg-309-workshop/init_workshop.sh`
+`. ./stg309-workshop/init_workshop.sh`
 
 - Again, this needs some time to run. Wait for it to complete before progressing.
 

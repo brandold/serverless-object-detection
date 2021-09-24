@@ -155,30 +155,3 @@ def detect_objects():
     results = {"Results": detection_results, "Image": overlayed_image}
 
     return results
-
-
-@app.route('/detectObjectsv2', methods=['POST'], content_types=supported_content_types, cors=True)
-def detect_objects_v2():
-    query_params = app.current_request.query_params
-    return_image = False
-
-    if not query_params:
-        return_image = False
-    else:
-        try:
-            if 'returnImage' in query_params:
-                if query_params['returnImage'] == 'true':
-                    return_image = True
-            else:
-                return {"Error": "Unsupported query param in request"}
-        except:
-            return {"Error": "Unsupported query param in request"}
-    
-    raw_image_data = app.current_request.raw_body
-
-    detection_results, overlayed_image = run_neural_net(raw_image_data, big_config, big_weights, return_image)
-
-
-    results = {"Results": detection_results, "Image": overlayed_image}
-
-    return results
