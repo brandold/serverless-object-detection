@@ -22,9 +22,6 @@ labels_path = './chalicelib/coco.names'
 small_weights = './chalicelib/yolo-tiny.weights'
 small_config = './chalicelib/yolo-tiny.cfg'
 
-big_weights = '/mnt/efs/models/yolo-big.weights'
-big_config = './chalicelib/yolo-big.cfg'
-
 # Load labels
 labels = open(labels_path, 'r').read().strip().split("\n")
 
@@ -134,19 +131,6 @@ def detect_objects():
     query_params = app.current_request.query_params
     return_image = False
 
-    if not query_params:
-        return_image = False
-    else:
-       
-        try:
-            if 'returnImage' in query_params:
-                if query_params['returnImage'] == 'true':
-                    return_image = True
-            else:
-                return {"Error": "Unsupported query param in request"}
-        except:
-            return {"Error": "Unsupported query param in request"}
-    
     raw_image_data = app.current_request.raw_body
 
     detection_results, overlayed_image = run_neural_net(raw_image_data, small_config, small_weights, return_image)
