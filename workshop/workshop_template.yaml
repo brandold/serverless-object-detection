@@ -130,6 +130,7 @@ Resources:
       InternetGatewayId: !Ref InternetGateway
       VpcId: !Ref VPC
   PublicSubnet1:
+    DependsOn: VPC
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
@@ -140,6 +141,7 @@ Resources:
         - Key: Name
           Value: STG309 Public Subnet 1
   PublicSubnet2:
+    DependsOn: VPC
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
@@ -150,6 +152,7 @@ Resources:
         - Key: Name
           Value: STG309 Public Subnet 2
   PublicSubnet3:
+    DependsOn: VPC
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
@@ -160,6 +163,7 @@ Resources:
         - Key: Name
           Value: STG309 Public Subnet 3
   PublicSubnet4:
+    DependsOn: VPC
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
@@ -218,6 +222,7 @@ Resources:
 
   EFSSecGroup:
     Type: AWS::EC2::SecurityGroup
+    DependsOn: VPC
     Properties: 
       GroupDescription: STG309Access
       GroupName: STG309
