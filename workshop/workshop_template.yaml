@@ -301,3 +301,8 @@ Outputs:
     Value: !Ref EFSFileSystem
     Export:
       Name: FilesystemID
+  EFSAccessPoint:
+    Description: EFS Access Point ID
+    Value: !Ref ManagedAccessPoint
+    Export:
+      Name: AccessPointID
