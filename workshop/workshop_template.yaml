@@ -101,6 +101,7 @@ Resources:
               - 'iam:ListUserTags'
               - 'elasticfilesystem:*'
               - 'ec2:*'
+              - 'cloudformation:DescribeStacks'
             Resource: '*'
       Roles:
         - Ref: RootRole

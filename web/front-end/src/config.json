@@ -1,0 +1,5 @@
+{
+  "SERVER_URL": "https://zsi1on0bi0.execute-api.us-west-2.amazonaws.com",
+  "API_NAME": "DetectObjectsV2",
+  "API_PATH": "/api/detectObjectsv2"
+}
