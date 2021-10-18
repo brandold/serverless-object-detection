@@ -16,13 +16,41 @@
 //     Author: Rafael M. Koike - koiker@amazon.com
 import React, {useState} from 'react';
 import {withRouter} from 'react-router-dom';
-import {AppLayout, FormField, Button, Box, Cards, Link, SpaceBetween} from "@awsui/components-react";
+import {
+    AppLayout,
+    FormField,
+    Button,
+    Box,
+    Cards,
+    Link,
+    SpaceBetween,
+    ColumnLayout,
+    Icon
+} from "@awsui/components-react";
 import {appLayoutLabels} from '../labels';
 import "../styles.css";
 import ServiceNavigation from "../navigation";
 import Container from "@awsui/components-react/container";
 import Header from "@awsui/components-react/header";
 import configData from "../config.json";
+
+
+const Filename = ({children}) => {
+    const icon = <Icon
+        name="status-positive"
+        size="normal"
+        variant="success"
+    />;
+    if (children){
+        return <>
+            {icon}
+            {children}
+        </>;
+    } else {
+        return <></>;
+    }
+
+}
 
 const FileUploader = () => {
     const [fileName, setFileName] = React.useState('');
@@ -61,22 +89,33 @@ const FileUploader = () => {
     }
     return (
         <>
-            <SpaceBetween size="xs" direction="vertical">
-                <SpaceBetween direction="horizontal" size="xs">
-                    <Button onClick={handleClick}>
-                        Upload a file
-                    </Button>
-                    {fileName}
-                    <input
-                        type="file"
-                        ref={hiddenFileInput}
-                        onChange={handleChange}
-                        style={{display: 'none'}}
-                    />
-                    <Button onClick={handleUpload}>
-                        Detect Objects
-                    </Button>
-                </SpaceBetween>
+            <SpaceBetween size="s" direction="vertical">
+                <ColumnLayout columns={3} variant="text-grid">
+                    <SpaceBetween size="s" direction="vertical">
+                    <div>
+                        <Button onClick={handleClick}>
+                            Upload a file
+                        </Button>
+                        <input
+                            type="file"
+                            ref={hiddenFileInput}
+                            onChange={handleChange}
+                            style={{display: 'none'}}
+                        />
+                        <div>
+                            <Filename>{fileName}</Filename>
+                        </div>
+                    </div>
+                    </SpaceBetween>
+                    <div>
+                        filename: {fileName}
+                    </div>
+                    <div>
+                        <Button onClick={handleUpload}>
+                            Detect Objects
+                        </Button>
+                    </div>
+                </ColumnLayout>
                 <Cards
                     cardDefinition={{
                         header: item => (
