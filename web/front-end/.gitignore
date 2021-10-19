@@ -1,7 +1,4 @@
-.chalice/deployments/
-.chalice/venv/
-.chalice/deployed
-__pycache__
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
 /node_modules
@@ -20,14 +17,12 @@ __pycache__
 .env.development.local
 .env.test.local
 .env.production.local
-.idea
 
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-#amplify
-amplify/team-provider-info.json
+#amplify-do-not-edit-begin
 amplify/\#current-cloud-backend
 amplify/.config/local-*
 amplify/logs
@@ -46,4 +41,4 @@ amplify-build-config.json
 amplify-gradle-config.json
 amplifytools.xcconfig
 .secret-*
-/amplify/backend/function/*/lib/python/lib/python3.*/site-packages/
+#amplify-do-not-edit-end

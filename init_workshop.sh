@@ -3,7 +3,6 @@
 sudo yum -y install amazon-efs-utils
 sudo yum install -y mesa-libGL
 sudo mkdir /mnt/efs
-sudo mkdir /mnt/efs/models
 python3 -m venv stg309-workshop
 source stg309-workshop/bin/activate
 cd stg309-workshop
@@ -15,6 +14,8 @@ export FILESYSTEM=$(aws cloudformation describe-stacks --query 'Stacks[?starts_w
 export ACCESS_POINT=$(aws cloudformation describe-stacks --query 'Stacks[?starts_with(StackName, `stg`)].Outputs[0].OutputValue' --output text)
 # Mount access point
 sudo mount -t efs -o tls,accesspoint=$ACCESS_POINT $FILESYSTEM:/ /mnt/efs
+# Create models folder
+sudo mkdir /mnt/efs/models
 #export BUCKET_NAME=`aws s3api list-buckets --query "reverse(sort_by(Buckets, &CreationDate))[:1] | [0].Name" | tr -d '"'`
 export WEIGHTS='https://s3.amazonaws.com/ee-assets-prod-us-east-1/modules/e685171bdc0b4b9491cc33417008744e/v1/yolo-big.weights'
 pip install --upgrade pip
