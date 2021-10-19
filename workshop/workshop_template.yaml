@@ -219,12 +219,12 @@ Resources:
            RepositoryUrl: https://github.com/brandold/serverless-object-detection.git
       AutomaticStopTimeMinutes: 60
       SubnetId: !Ref PublicSubnet1
-      InstanceType: t2.micro
+      InstanceType: t2.small
 
   EFSSecGroup:
     Type: AWS::EC2::SecurityGroup
     DependsOn: VPC
-    Properties: 
+    Properties:
       GroupDescription: STG309Access
       GroupName: STG309
       SecurityGroupIngress:
@@ -252,39 +252,39 @@ Resources:
 
   EFSMountTarget1:
     Type: AWS::EFS::MountTarget
-    Properties: 
+    Properties:
       FileSystemId: !Ref EFSFileSystem
-      SecurityGroups: 
+      SecurityGroups:
         - !GetAtt EFSSecGroup.GroupId
       SubnetId: !Ref PublicSubnet1
-  
+
   EFSMountTarget2:
     Type: AWS::EFS::MountTarget
-    Properties: 
+    Properties:
       FileSystemId: !Ref EFSFileSystem
-      SecurityGroups: 
+      SecurityGroups:
         - !GetAtt EFSSecGroup.GroupId
       SubnetId: !Ref PublicSubnet2
-  
+
   EFSMountTarget3:
     Type: AWS::EFS::MountTarget
-    Properties: 
+    Properties:
       FileSystemId: !Ref EFSFileSystem
-      SecurityGroups: 
+      SecurityGroups:
         - !GetAtt EFSSecGroup.GroupId
       SubnetId: !Ref PublicSubnet3
 
   EFSMountTarget4:
     Type: AWS::EFS::MountTarget
-    Properties: 
+    Properties:
       FileSystemId: !Ref EFSFileSystem
-      SecurityGroups: 
+      SecurityGroups:
         - !GetAtt EFSSecGroup.GroupId
       SubnetId: !Ref PublicSubnet4
 
   ManagedAccessPoint:
     Type: AWS::EFS::AccessPoint
-    DependsOn: 
+    DependsOn:
       - EFSMountTarget1
       - EFSMountTarget2
       - EFSMountTarget3
