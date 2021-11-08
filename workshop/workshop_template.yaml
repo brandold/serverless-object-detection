@@ -116,6 +116,7 @@ Resources:
     Type: 'AWS::EC2::VPC'
     Properties:
       CidrBlock: 10.192.0.0/16
+      EnableDnsHostnames: true
       Tags:
         - Key: Name
           Value: STG309 VPC
