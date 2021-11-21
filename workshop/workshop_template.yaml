@@ -1,5 +1,16 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: STG309 workshop setup with VPC for Cloud9.
+
+Parameters:
+  SpecifyC9Owner:
+    AllowedValues: [true, false]
+    Description: Add an Owner ARN to the C9 Env
+    Type: String
+    Default: true
+
+Conditions:
+  AssignOwnerArn: !Equals [!Ref SpecifyC9Owner, true]
+
 Resources:
   RootRole:
     Type: 'AWS::IAM::Role'
@@ -215,6 +226,7 @@ Resources:
     Properties:
       Name: STG309-Workshop
       Description: C9 IDE for STG309 Workshop
+      OwnerArn: !If [AssignOwnerArn, !Sub "arn:aws:iam::${AWS::AccountId}:assumed-role/TeamRole/MasterKey", !Ref "AWS::NoValue"]
       Repositories:
          - PathComponent: /stg309-workshop
            RepositoryUrl: https://github.com/brandold/serverless-object-detection.git
