@@ -2,6 +2,7 @@
 
 sudo yum -y install amazon-efs-utils
 sudo yum install -y mesa-libGL
+sudo yum install jq -y
 sudo mkdir /mnt/efs
 python3 -m venv stg309-workshop
 source stg309-workshop/bin/activate
