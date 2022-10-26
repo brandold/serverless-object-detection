@@ -13,7 +13,6 @@ export C9_EC2_ID=`aws ec2 describe-instances --region us-west-2 --filters Name=t
 export FILESYSTEM=$(aws cloudformation list-exports --query "Exports[?Name==\`FilesystemID\`].Value" --no-paginate --output text)
 # Get access point
 export ACCESS_POINT=$(aws cloudformation list-exports --query "Exports[?Name==\`AccessPointID\`].Value" --no-paginate --output text)
-export WEIGHTS='https://s3.amazonaws.com/ee-assets-prod-us-east-1/modules/38c8887218564adebacdda266134918f/v1/yolo-big.weights'
 pip install --upgrade pip
 aws ec2 associate-iam-instance-profile --iam-instance-profile Name=stg319WorkshopInstanceProfile --region us-west-2 --instance-id $C9_EC2_ID
 pip --disable-pip-version-check install -q boto3

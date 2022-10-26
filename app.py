@@ -32,7 +32,6 @@ def run_neural_net(image, config_path, weights_path, return_image):
 
     # Load image with cv2 and get dimensions
     image = cv2.imdecode(img_nparr, cv2.IMREAD_COLOR)
-    print(image)
     (H, W) = image.shape[:2]
 
     # Initialize our YOLO neural net
@@ -40,7 +39,7 @@ def run_neural_net(image, config_path, weights_path, return_image):
 
     # Determine only the *output* layer names that we need from YOLO
     ln = net.getLayerNames()
-    ln = [ln[i[0] - 1] for i in net.getUnconnectedOutLayers()]
+    ln = [ln[i - 1] for i in net.getUnconnectedOutLayers()]
 
     # Preprocess image by constructing a normalized blob, then perform a forward
     # pass of the YOLO neural net, giving us bounding boxes and probabilities

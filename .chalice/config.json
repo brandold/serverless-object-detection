@@ -4,7 +4,7 @@
   "stages": {
     "dev": {
       "api_gateway_stage": "api",
-      "layers": ["arn:aws:lambda:us-west-2:930621086037:layer:cv2python36:1"],
+      "layers": ["arn:aws:lambda:us-west-2:764127651952:layer:cv2python37:1"],
       "lambda_memory_size": 3008,
       "lambda_timeout": 30,
       "autogen_policy": false,
