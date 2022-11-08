@@ -22,7 +22,9 @@ pip --disable-pip-version-check install -q opencv-python
 
 CONFIG=/home/ec2-user/.aws/config
 touch $CONFIG
-echo "[profile default]\nrole_arn = $ROLE_ARN\ncredential_source = Ec2InstanceMetadata\nregion = $AWS_DEFAULT_REGION" >> $CONFIG
+echo -en "[profile default]\nrole_arn = $ROLE_ARN\ncredential_source = Ec2InstanceMetadata\nregion = $AWS_DEFAULT_REGION" >> $CONFIG
+
+rm -rf /home/ec2-user/node_modules/
 
 # Mount access point
 #sudo mount -t efs -o tls,accesspoint=$ACCESS_POINT $FILESYSTEM:/ /mnt/efs
