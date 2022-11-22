@@ -20,7 +20,7 @@ import {AmplifySignOut} from "@aws-amplify/ui-react";
 import {TextContent} from "@awsui/components-react";
 
 const Navbar = () => {
-    const title = 'STG309 - Integrating serverless applications with AWS Storage services';
+    const title = 'STG319 - Integrating serverless applications with AWS Storage services';
     const [user, setUser] = useState(null);
 
     useEffect(() => {
