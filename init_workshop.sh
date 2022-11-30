@@ -2,6 +2,7 @@
 
 sudo yum -y install amazon-efs-utils
 sudo yum install -y mesa-libGL
+sudo yum -y install xdg-utils
 sudo yum install jq -y
 sudo mkdir /mnt/efs
 python3 -m venv stg319-workshop
